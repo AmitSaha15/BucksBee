@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface ProfileRepository extends JpaRepository<ProfileEntity, Long> {
 
 //    under the hood it's just a SQL query -->
-//    select * from tbl_profiles where email = email(argument of the method)
+//    select * from tbl_profiles where email = ?(parameter of the method)
     Optional<ProfileEntity> findByEmail(String email);
+//    select * from tbl_profiles where activationToken = ? (method parameter)
+    Optional<ProfileEntity> findByActivationToken(String activationToken);
 }
