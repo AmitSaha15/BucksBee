@@ -1,15 +1,19 @@
 package in.amitsaha.bucksbee.service;
 
+import in.amitsaha.bucksbee.dto.AuthDTO;
 import in.amitsaha.bucksbee.dto.ProfileDTO;
 import in.amitsaha.bucksbee.entity.ProfileEntity;
 import in.amitsaha.bucksbee.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -19,6 +23,7 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     public ProfileDTO registerProfile(ProfileDTO profileDTO){
         ProfileEntity newProfile = toEntity(profileDTO);
@@ -99,5 +104,20 @@ public class ProfileService {
                 .createdAt(currentUser.getCreatedAt())
                 .updatedAt(currentUser.getUpdatedAt())
                 .build();
+    }
+
+    public Map<String, Object> authenticateAndGenerateToken(AuthDTO authDTO){
+        try {
+//            Authentication
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword()));
+
+//            Generate JWT token
+            return Map.of(
+                    "token", "JWT token",
+                    "user", getPublicProfile(authDTO.getEmail())
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid email or password.");
+        }
     }
 }
