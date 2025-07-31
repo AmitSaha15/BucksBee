@@ -29,10 +29,11 @@ public class JwtUtil {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token){
-        return Jwts.parser()
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
-                .parseClaimsJwt(token)
+                .build()
+                .parseClaimsJws(token)
                 .getBody();
     }
 
