@@ -49,9 +49,4 @@ public class ProfileController {
             ));
         }
     }
-
-    @GetMapping("/test")
-    public String test(){
-        return "Test successful";
-    }
 }
