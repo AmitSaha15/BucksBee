@@ -4,6 +4,7 @@ import in.amitsaha.bucksbee.dto.IncomeDTO;
 import in.amitsaha.bucksbee.entity.CategoryEntity;
 import in.amitsaha.bucksbee.entity.IncomeEntity;
 import in.amitsaha.bucksbee.entity.ProfileEntity;
+import in.amitsaha.bucksbee.repository.CategoryRepository;
 import in.amitsaha.bucksbee.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,20 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class IncomeService {
 
-    private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
     private final IncomeRepository incomeRepository;
+    private final ProfileService profileService;
+
+    //    add new income
+    public IncomeDTO addIncome(IncomeDTO dto){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        CategoryEntity category = categoryRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Category not found."));
+
+        IncomeEntity newExpense = toEntity(dto, profile, category);
+        newExpense = incomeRepository.save(newExpense);
+        return toDTO(newExpense);
+    }
 
     //    helper methods
     private IncomeEntity toEntity(IncomeDTO dto, ProfileEntity profile, CategoryEntity category){
