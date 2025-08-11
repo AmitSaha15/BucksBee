@@ -9,6 +9,10 @@ import in.amitsaha.bucksbee.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ExpenseService {
@@ -26,6 +30,42 @@ public class ExpenseService {
         ExpenseEntity newExpense = toEntity(dto, profile, category);
         newExpense = expenseRepository.save(newExpense);
         return toDTO(newExpense);
+    }
+
+//    get all expenses based on start date and end date/current month
+    public List<ExpenseDTO> getCurrentMonthExpensesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = now.withDayOfMonth(1); //first day of the month
+        LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth()); //last day of the month
+
+        List<ExpenseEntity> list = expenseRepository.findByProfileIdAndDateBetween(profile.getId(), startDate, endDate);
+        return list.stream().map(this::toDTO).toList();
+    }
+
+//    delete expense by id for current user
+    public void deleteExpense(Long expenseId){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        ExpenseEntity entity = expenseRepository.findById(expenseId).orElseThrow(() -> new RuntimeException("Expense not found."));
+
+        if(!entity.getProfile().getId().equals(profile.getId())){
+            throw new RuntimeException("Unauthorized to delete this expense.");
+        }
+        expenseRepository.delete(entity);
+    }
+
+//    get latest 5 expenses for current user
+    public List<ExpenseDTO> getLatest5ExpensesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<ExpenseEntity> list = expenseRepository.findTop5ByProfileIdOrderByDateDesc(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
+
+//    get total sum of expenses of current user
+    public BigDecimal getTotalExpenseForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        BigDecimal total = expenseRepository.findTotalExpenseByProfileId(profile.getId());
+        return total != null ? total : BigDecimal.ZERO;
     }
 
 //    helper methods
